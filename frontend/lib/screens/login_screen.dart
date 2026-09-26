@@ -35,10 +35,14 @@ class _LoginScreenState extends State<LoginScreen> {
       final result = await ApiService.login(studentId);
       final profile = result['profile'];
 
-      if (!mounted) return;
+       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => DashboardShell(studentId: profile['student_id']),
+          builder: (_) => DashboardShell(
+            studentId: profile['student_id'],
+            applicantName: profile['full_name'],
+            applicantState: profile['state'],
+          ),
         ),
       );
     } catch (e) {

@@ -49,7 +49,60 @@ class ScholarshipApplication {
     this.flaggedDocuments = const [],
     this.deficiencyNote,
   });
+  static const Map<String, String> _schemeLabels = {
+    'PRE_MATRIC_ST': 'Pre-Matric Scholarship for ST Students',
+    'POST_MATRIC_ST': 'Post-Matric Scholarship for ST Students',
+    'TOP_CLASS': 'Top Class Education Scheme',
+    'NFST': 'National Fellowship for ST Students',
+    'NOS': 'National Overseas Scholarship',
+  };
 
+  // Converts one raw application JSON object from the backend
+  // (aggregationService.js's unified format) into this model.
+  factory ScholarshipApplication.fromApiJson(
+    Map<String, dynamic> json, {
+    required String applicantName,
+  }) {
+    final status = json['status'] as String;
+    final pendingDocs = (json['pending_documents'] as List<dynamic>? ?? [])
+        .map((d) => d.toString())
+        .toList();
+
+    ApplicationStage stage;
+    bool actionRequired = false;
+    ApplicationStage? flaggedAtStage;
+
+    switch (status) {
+      case 'sanctioned':
+        stage = ApplicationStage.sanctioned;
+        break;
+      case 'disbursed':
+        stage = ApplicationStage.disbursed;
+        break;
+      case 'action_required':
+        stage = ApplicationStage.verified;
+        actionRequired = true;
+        flaggedAtStage = ApplicationStage.verified;
+        break;
+      default:
+        stage = ApplicationStage.submitted;
+    }
+
+    return ScholarshipApplication(
+      schemeName: _schemeLabels[json['scheme']] ?? json['scheme'].toString(),
+      applicationId: json['application_id'].toString(),
+      applicantName: applicantName,
+      currentStage: stage,
+      amount: (json['amount'] as num).toDouble(),
+      lastUpdated: DateTime.tryParse(json['last_updated'].toString()) ?? DateTime.now(),
+      actionRequired: actionRequired,
+      flaggedAtStage: flaggedAtStage,
+      flaggedDocuments: actionRequired ? pendingDocs : const [],
+      deficiencyNote: actionRequired && pendingDocs.isNotEmpty
+          ? 'Flagged for review: ${pendingDocs.join(', ')}'
+          : null,
+    );
+  }
   // Generates a plausible 4-stage timeline for the Detail screen, working
   // backwards from lastUpdated. Stages after currentStage are left unreached.
   List<TimelineEvent> get timeline {

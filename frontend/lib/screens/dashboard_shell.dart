@@ -4,13 +4,19 @@ import '../widgets/gov_header.dart';
 import 'dashboard_screen.dart';
 import 'document_wallet_screen.dart';
 import 'chatbot_screen.dart';
-
+import 'applications_screen.dart';
+import 'profile_screen.dart';
 class DashboardShell extends StatefulWidget {
-  const DashboardShell({super.key, required this.studentId, this.applicantName});
+  const DashboardShell({
+    super.key,
+    required this.studentId,
+    this.applicantName,
+    this.applicantState,
+  });
 
   final String studentId;
   final String? applicantName;
-
+  final String? applicantState;
   @override
   State<DashboardShell> createState() => _DashboardShellState();
 }
@@ -27,11 +33,15 @@ class _DashboardShellState extends State<DashboardShell> {
   ];
 
   List<Widget> get _screens => [
-        DashboardScreen(studentId: widget.studentId),
-        _PlaceholderScreen(label: 'Applications'),
+        DashboardScreen(studentId: widget.studentId, applicantName: widget.applicantName),
+        ApplicationsScreen(studentId: widget.studentId, applicantName: widget.applicantName),
         const DocumentWalletScreen(),
         ChatbotScreen(studentId: widget.studentId),
-        _PlaceholderScreen(label: widget.applicantName ?? 'Profile'),
+        ProfileScreen(
+          studentId: widget.studentId,
+          applicantName: widget.applicantName,
+          applicantState: widget.applicantState,
+        ),
       ];
 
   @override
