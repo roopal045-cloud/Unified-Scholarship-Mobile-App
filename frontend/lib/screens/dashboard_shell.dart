@@ -1,0 +1,75 @@
+import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
+import '../widgets/gov_header.dart';
+import 'dashboard_screen.dart';
+
+class DashboardShell extends StatefulWidget {
+  const DashboardShell({super.key});
+
+  @override
+  State<DashboardShell> createState() => _DashboardShellState();
+}
+
+class _DashboardShellState extends State<DashboardShell> {
+  int _selectedIndex = 0;
+
+  static const List<String> _titles = [
+    'Dashboard',
+    'Applications',
+    'Document wallet',
+    'JAGO assistant',
+    'Profile',
+  ];
+
+  static const List<Widget> _screens = [
+    DashboardScreen(),
+    _PlaceholderScreen(label: 'Applications'),
+    _PlaceholderScreen(label: 'Document wallet'),
+    _PlaceholderScreen(label: 'JAGO assistant'),
+    _PlaceholderScreen(label: 'Profile'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(index: _selectedIndex, children: _screens),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.description_outlined), label: 'Applications'),
+          BottomNavigationBarItem(icon: Icon(Icons.folder_outlined), label: 'Documents'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'JAGO'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+        ],
+      ),
+    );
+  }
+}
+
+// Temporary placeholder for tabs not yet built (D and E's screens will
+// replace these later).
+class _PlaceholderScreen extends StatelessWidget {
+  const _PlaceholderScreen({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        GovHeader(compact: true),
+        Expanded(
+          child: Center(
+            child: Text(
+              '$label screen - coming soon',
+              style: const TextStyle(color: AppColors.textDark),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
