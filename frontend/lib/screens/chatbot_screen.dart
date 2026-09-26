@@ -58,16 +58,26 @@ final Map<String, String Function()> chatIntentReplies = {
         '$statusPhrase. $followUp';
   },
 
-  // PLACEHOLDER - pending final intent copy from Person D.
-  'eligibility': () =>
-      '[Placeholder response - eligibility copy pending from design lead]. In the meantime, you can check '
-      'eligibility criteria for each scheme on its details page.',
+    'eligibility': () {
+    final app = _demoApplication;
+    return 'For "${app.schemeName}", you are generally eligible if you belong to a notified '
+        'Scheduled Tribe, meet the income ceiling for the scheme, and are enrolled in a recognised '
+        'institution. Since you already have an active application (${app.applicationId}), your '
+        'eligibility for this scheme has been accepted. You cannot hold two scholarships at the same '
+        'time, so a new application under a different scheme will show as blocked until this one is closed.';
+  },
 
-  // PLACEHOLDER - pending final intent copy from Person D.
-  'documents_required': () =>
-      '[Placeholder response - documents-required copy pending from design lead]. Generally you\'ll need an '
-      'Aadhaar Card, Income Certificate, Caste Certificate, Bonafide Certificate and Bank Passbook.',
-
+  'documents_required': () {
+    final app = _demoApplication;
+    if (app.actionRequired && app.flaggedDocuments.isNotEmpty) {
+      final docs = app.flaggedDocuments.join(', ');
+      return 'For ${app.applicationId}, the following documents need to be re-submitted: $docs. '
+          'You can upload corrected copies from the Document Wallet tab.';
+    }
+    return 'For most schemes you will need: Aadhaar Card, Income Certificate, Scheduled Tribe (ST) '
+        'Certificate, Bonafide Certificate from your institution, and Bank Passbook (for DBT). '
+        'Additional documents may apply depending on your scheme.';
+  },
   // Uses the flagged persona's real deficiency note where available.
   'deficiency_explanation': () => _demoApplication.actionRequired
       ? 'For ${_demoApplication.applicationId}: ${_demoApplication.deficiencyNote}'
@@ -100,22 +110,65 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final List<ChatMessage> _messages = [
     const ChatMessage(text: chatbotGreeting, isUser: false),
   ];
-  final ScrollController _scrollController = ScrollController();
+   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _textController = TextEditingController();
 
   void _handleIntentTap(ChatIntent intent) {
+    _addUserMessage(intent.chipLabel);
+    _sendReply(() => chatIntentReplies[intent.id]?.call() ??
+        '[No response configured for this intent yet]');
+  }
+
+  void _handleTextSubmit(String text) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
+    _textController.clear();
+    _addUserMessage(trimmed);
+
+    final matchedId = _matchIntent(trimmed);
+    _sendReply(() => matchedId != null
+        ? (chatIntentReplies[matchedId]?.call() ?? '[No response configured for this intent yet]')
+        : "I'm not sure I understood that. Try one of the suggestions below, "
+            'or rephrase your question - for example, ask about your application status, '
+            'eligibility, required documents, or a deficiency notice.');
+  }
+
+  // Simple keyword-based intent matching for typed questions.
+  // Not real NLU - good enough for a hackathon demo; swap for a proper
+  // intent classifier or LLM call later if time allows.
+  String? _matchIntent(String text) {
+    final lower = text.toLowerCase();
+    if (lower.contains('status') || lower.contains('track') || lower.contains('where is')) {
+      return 'status_check';
+    }
+    if (lower.contains('eligib') || lower.contains('qualify') || lower.contains('can i apply')) {
+      return 'eligibility';
+    }
+    if (lower.contains('document') || lower.contains('docs') || lower.contains('upload')) {
+      return 'documents_required';
+    }
+    if (lower.contains('deficien') || lower.contains('reject') || lower.contains('wrong') ||
+        lower.contains('mismatch') || lower.contains('correct')) {
+      return 'deficiency_explanation';
+    }
+    return null;
+  }
+
+  void _addUserMessage(String text) {
     setState(() {
-      _messages.add(ChatMessage(text: intent.chipLabel, isUser: true));
+      _messages.add(ChatMessage(text: text, isUser: true));
     });
+    _scrollToBottom();
+  }
+
+  void _sendReply(String Function() replyBuilder) {
     Future.delayed(const Duration(milliseconds: 350), () {
       if (!mounted) return;
-      final reply = chatIntentReplies[intent.id]?.call() ??
-          '[No response configured for this intent yet]';
       setState(() {
-        _messages.add(ChatMessage(text: reply, isUser: false));
+        _messages.add(ChatMessage(text: replyBuilder(), isUser: false));
       });
       _scrollToBottom();
     });
-    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -134,11 +187,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     return Column(
       children: [
         const GovHeader(compact: true),
-        Container(
+             Container(
           width: double.infinity,
-          color: AppColors.white,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: const BoxDecoration(
+            color: AppColors.white,
             border: Border(bottom: BorderSide(color: AppColors.border)),
           ),
           child: Row(
@@ -157,12 +210,12 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             itemBuilder: (context, index) => _MessageBubble(message: _messages[index]),
           ),
         ),
-        // Suggested-intent chips - swappable via chatIntents/chatIntentReplies above.
-        Container(
+          // Suggested-intent chips - swappable via chatIntents/chatIntentReplies above.
+                Container(
           width: double.infinity,
-          color: AppColors.white,
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
           decoration: const BoxDecoration(
+            color: AppColors.white,
             border: Border(top: BorderSide(color: AppColors.border)),
           ),
           child: Wrap(
@@ -182,6 +235,36 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                       ),
                     ))
                 .toList(),
+          ),
+        ),
+        // Free-text input row.
+        Container(
+          width: double.infinity,
+          color: AppColors.white,
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _textController,
+                  onSubmitted: _handleTextSubmit,
+                  decoration: InputDecoration(
+                    hintText: 'Type your question...',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: AppColors.border),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () => _handleTextSubmit(_textController.text),
+                icon: const Icon(Icons.send, color: AppColors.navy),
+              ),
+            ],
           ),
         ),
       ],

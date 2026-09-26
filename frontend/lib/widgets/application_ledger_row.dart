@@ -108,7 +108,34 @@ class ApplicationLedgerRow extends StatelessWidget {
                 color: Color(0xFFFDECEC),
                 border: Border(top: BorderSide(color: Color(0xFFD32F2F))),
               ),
-              child: Row(
+                           child: Row(
                 children: [
                   const Icon(Icons.error_outline, size: 16, color: Color(0xFFD32F2F)),
                   const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      application.deficiencyNote ?? 'Action required - see details.',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFFD32F2F)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (application.amount > 0)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Text(
+                'Amount: \u20B9${application.amount.toStringAsFixed(0)}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.navy,
+                ),
+              ),
+            ),
+        ],
+      ),
+      ),
+    );
+  }
+}

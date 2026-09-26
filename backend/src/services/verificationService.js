@@ -5,7 +5,11 @@ const nos = require("../adapters/nosAdapter");
 // In-memory manual review queue for the hackathon demo.
 // A real system would persist this in the DB (see verification_status table in schema.sql).
 const manualReviewQueue = [];
-
+// Hardcoded so the manual-review demo path is guaranteed, not left to
+// the adapters' random match/mismatch simulation.
+const FORCED_MISMATCHES = {
+  "SFMP-NFST-88231": ["net_jrf_certificate"]
+};
 // Maps a document type to which source system should verify it.
 // Mirrors the table from the problem statement (AISHE, UDISE+, UGC-NTA, e-District, etc.)
 function getSourceAdapter(docType) {
@@ -29,14 +33,16 @@ function getSourceAdapter(docType) {
  */
 function verifyDocument(applicationId, docType) {
   const adapter = getSourceAdapter(docType);
-
+ const isForcedMismatch =
+    FORCED_MISMATCHES[applicationId] &&
+    FORCED_MISMATCHES[applicationId].includes(docType);
   if (!adapter) {
     return { status: "unknown_document_type", docType };
   }
 
   const result = adapter.verifyDocument(docType);
 
-  if (result.matched) {
+   if (result.matched && !isForcedMismatch) {
     return {
       status: "auto_cleared",
       docType,
