@@ -61,6 +61,9 @@ class ApiService {
   /// Fires a mock milestone notification (sanctioned / disbursed /
   /// action_required). Used by the dashboard to simulate a push alert the
   /// moment an application reaches one of those stages.
+   /// Fires a mock milestone notification (sanctioned / disbursed /
+  /// action_required). Used by the dashboard to simulate a push alert the
+  /// moment an application reaches one of those stages.
   static Future<Map<String, dynamic>> triggerNotification({
     required String studentId,
     required String applicationId,
@@ -80,6 +83,20 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to trigger notification: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// Checks whether a student is eligible to start a new scheme application.
+  /// Enforces the "one scheme at a time" rule from the problem statement.
+  static Future<Map<String, dynamic>> checkEligibility(String studentId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/eligibility/$studentId'),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to check eligibility: ${response.statusCode} ${response.body}');
     }
   }
 }

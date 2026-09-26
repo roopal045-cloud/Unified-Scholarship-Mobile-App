@@ -6,7 +6,7 @@ import '../widgets/application_ledger_row.dart';
 import '../widgets/notification_bell.dart';
 import '../models/scholarship_application.dart';
 import '../services/api_service.dart';
-
+import 'eligibility_check_screen.dart';
 const Map<String, String> _schemeLabels = {
   'PRE_MATRIC_ST': 'Pre-Matric Scholarship for ST Students',
   'POST_MATRIC_ST': 'Post-Matric Scholarship for ST Students',
@@ -207,9 +207,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const Divider(height: 1, color: AppColors.border),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
-                      child: Text(
-                        'Your applications',
-                        style: Theme.of(context).textTheme.titleMedium,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Your applications',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => EligibilityCheckScreen(studentId: widget.studentId),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              '+ Apply for new scheme',
+                              style: TextStyle(fontSize: 12, color: AppColors.navy),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Padding(

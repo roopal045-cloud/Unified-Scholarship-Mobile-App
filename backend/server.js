@@ -5,6 +5,7 @@ const applicationRoutes = require("./src/routes/applications");
 const verificationRoutes = require("./src/routes/verification");
 const disbursementRoutes = require("./src/routes/disbursement");
 const notificationRoutes = require("./src/routes/notifications");
+const eligibilityRoutes = require("./src/routes/eligibility");
 const app = express();
 const PORT = 3000;
 app.use(cors());
@@ -16,6 +17,7 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/verification", verificationRoutes);
 app.use("/api/disbursement", disbursementRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/eligibility", eligibilityRoutes);
 // Simple health check - useful to confirm the server is alive.
 app.get("/", (req, res) => {
   res.json({ status: "Unified Scholarship API is running" });

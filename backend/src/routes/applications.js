@@ -9,10 +9,9 @@ router.get("/:studentId", (req, res) => {
   const { studentId } = req.params;
   const dashboard = aggregationService.getUnifiedDashboard(studentId);
 
-  if (dashboard.application_count === 0) {
-    return res.status(404).json({ error: "No applications found for this student" });
-  }
-
+  // Zero applications is a valid state (e.g. a student who hasn't applied
+  // to any scheme yet) - not an error. The frontend shows an empty-state
+  // dashboard rather than an error screen for this case.
   res.json(dashboard);
 });
 

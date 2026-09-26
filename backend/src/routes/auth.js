@@ -10,7 +10,8 @@ const MOCK_STUDENTS = {
   "STU-1001": { student_id: "STU-1001", full_name: "Anita Oraon", state: "Jharkhand" },
   "STU-1002": { student_id: "STU-1002", full_name: "Ravi Munda", state: "Odisha" },
   "STU-1003": { student_id: "STU-1003", full_name: "Meena Bhil", state: "Madhya Pradesh" },
-  "STU-1004": { student_id: "STU-1004", full_name: "Sunita Kumari", state: "Chhattisgarh" }
+  "STU-1004": { student_id: "STU-1004", full_name: "Sunita Kumari", state: "Chhattisgarh" },
+  "STU-1005": { student_id: "STU-1005", full_name: "Arjun Meena", state: "Rajasthan" }
 };
 
 // POST /api/auth/login
