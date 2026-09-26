@@ -8,9 +8,13 @@ import 'tricolor_strip.dart';
 // (Ashoka Lion Capital) - swap in the real emblem asset before final submission,
 // and flag in the pitch deck that it is used pending official clearance.
 class GovHeader extends StatelessWidget {
-  const GovHeader({super.key, this.compact = false});
+  const GovHeader({super.key, this.compact = false, this.trailing});
 
   final bool compact;
+  // Optional slot for a header action, e.g. the milestone-alert bell on the
+  // Dashboard tab. Kept nullable so every other screen using GovHeader is
+  // unaffected.
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +60,7 @@ class GovHeader extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (trailing != null) trailing!,
               ],
             ),
           ),

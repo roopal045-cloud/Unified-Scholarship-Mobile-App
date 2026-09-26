@@ -42,6 +42,25 @@ const Map<String, String> _statusLabels = {
   'action_required': 'flagged for action',
 };
 
+// Phase 4 (D): "multilingual toggle, even if just 2 languages via prompt".
+// This is a hardcoded EN/HI string swap rather than a translation API call -
+// enough to demo the toggle without needing a live LLM connection mid-pitch.
+enum ChatLanguage { en, hi }
+
+const Map<String, String> _chipLabelsHi = {
+  'status_check': 'आवेदन की स्थिति देखें',
+  'eligibility': 'क्या मैं पात्र हूं?',
+  'documents_required': 'आवश्यक दस्तावेज़',
+  'deficiency_explanation': 'कमी सूचना समझाएं',
+};
+
+const Map<String, String> _statusLabelsHi = {
+  'under_verification': 'सत्यापन में',
+  'sanctioned': 'स्वीकृत',
+  'disbursed': 'वितरित',
+  'action_required': 'कार्रवाई हेतु चिह्नित',
+};
+
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key, required this.studentId});
 
@@ -60,6 +79,23 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   List<Map<String, dynamic>> _applications = [];
   bool _loadingData = true;
+  ChatLanguage _language = ChatLanguage.en;
+
+  String _t(String en, String hi) => _language == ChatLanguage.en ? en : hi;
+
+  void _toggleLanguage() {
+    setState(() {
+      _language = _language == ChatLanguage.en ? ChatLanguage.hi : ChatLanguage.en;
+      _messages.add(ChatMessage(
+        text: _t(
+          'Switched to English. New replies will be in English.',
+          'हिंदी में बदल दिया गया। अब से जवाब हिंदी में मिलेंगे।',
+        ),
+        isUser: false,
+      ));
+    });
+    _scrollToBottom();
+  }
 
   @override
   void initState() {
@@ -96,54 +132,95 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   String _buildReply(String intentId) {
     if (_loadingData) {
-      return "One moment, I'm still fetching your application details.";
+      return _t(
+        "One moment, I'm still fetching your application details.",
+        'कृपया प्रतीक्षा करें, मैं आपकी आवेदन जानकारी प्राप्त कर रहा हूं।',
+      );
     }
     final app = _demoApp;
     if (app == null) {
-      return "I couldn't find any applications linked to your account yet.";
+      return _t(
+        "I couldn't find any applications linked to your account yet.",
+        'आपके खाते से जुड़ा कोई आवेदन अभी तक नहीं मिला।',
+      );
     }
 
     switch (intentId) {
       case 'status_check':
-        final statusPhrase = _statusLabels[app['status']] ?? app['status'].toString();
+        final statusPhrase = _t(
+          _statusLabels[app['status']] ?? app['status'].toString(),
+          _statusLabelsHi[app['status']] ?? app['status'].toString(),
+        );
         final followUp = app['status'] == 'action_required'
-            ? 'Please check the Application Detail screen for what needs to be corrected.'
-            : "We'll notify you as soon as it moves to the next stage.";
-        return 'Your application ${app['application_id']} for "${_schemeLabelFor(app)}" is '
-            'currently $statusPhrase. $followUp';
+            ? _t(
+                'Please check the Application Detail screen for what needs to be corrected.',
+                'कृपया देखें कि आवेदन विवरण स्क्रीन पर क्या सुधारना है।',
+              )
+            : _t(
+                "We'll notify you as soon as it moves to the next stage.",
+                'अगले चरण में पहुंचते ही हम आपको सूचित करेंगे।',
+              );
+        return _t(
+          'Your application ${app['application_id']} for "${_schemeLabelFor(app)}" is '
+              'currently $statusPhrase. $followUp',
+          'आपका आवेदन ${app['application_id']} ("${_schemeLabelFor(app)}") वर्तमान में '
+              '$statusPhrase है। $followUp',
+        );
 
       case 'eligibility':
-        return 'For "${_schemeLabelFor(app)}", you are generally eligible if you belong to a '
-            'notified Scheduled Tribe, meet the income ceiling for the scheme, and are enrolled '
-            'in a recognised institution. Since you already have an active application '
-            '(${app['application_id']}), a new application under a different scheme will show '
-            'as blocked until this one is closed.';
+        return _t(
+          'For "${_schemeLabelFor(app)}", you are generally eligible if you belong to a '
+              'notified Scheduled Tribe, meet the income ceiling for the scheme, and are enrolled '
+              'in a recognised institution. Since you already have an active application '
+              '(${app['application_id']}), a new application under a different scheme will show '
+              'as blocked until this one is closed.',
+          '"${_schemeLabelFor(app)}" के लिए, आप आमतौर पर पात्र हैं यदि आप अधिसूचित अनुसूचित '
+              'जनजाति से हैं, आय सीमा पूरी करते हैं, और किसी मान्यता प्राप्त संस्थान में नामांकित हैं। '
+              'चूंकि आपका पहले से एक सक्रिय आवेदन (${app['application_id']}) है, इसलिए किसी अन्य '
+              'योजना के तहत नया आवेदन तब तक अवरुद्ध दिखेगा जब तक यह बंद नहीं हो जाता।',
+        );
 
       case 'documents_required':
         final pendingDocs = (app['pending_documents'] as List<dynamic>? ?? []);
         if (app['status'] == 'action_required' && pendingDocs.isNotEmpty) {
-          return 'For ${app['application_id']}, the following need attention: '
-              '${pendingDocs.join(', ')}. You can upload corrected copies from the Document '
-              'Wallet tab.';
+          return _t(
+            'For ${app['application_id']}, the following need attention: '
+                '${pendingDocs.join(', ')}. You can upload corrected copies from the Document '
+                'Wallet tab.',
+            '${app['application_id']} के लिए इन पर ध्यान देना होगा: '
+                '${pendingDocs.join(', ')}। आप डॉक्यूमेंट वॉलेट टैब से सही प्रति अपलोड कर सकते हैं।',
+          );
         }
-        return 'For most schemes you will need: Aadhaar Card, Income Certificate, Scheduled '
-            'Tribe (ST) Certificate, Bonafide Certificate from your institution, and Bank '
-            'Passbook (for DBT). Additional documents may apply depending on your scheme.';
+        return _t(
+          'For most schemes you will need: Aadhaar Card, Income Certificate, Scheduled '
+              'Tribe (ST) Certificate, Bonafide Certificate from your institution, and Bank '
+              'Passbook (for DBT). Additional documents may apply depending on your scheme.',
+          'अधिकांश योजनाओं के लिए आपको चाहिए: आधार कार्ड, आय प्रमाण पत्र, अनुसूचित जनजाति '
+              '(ST) प्रमाण पत्र, संस्थान से बोनाफाइड प्रमाण पत्र, और बैंक पासबुक (DBT हेतु)। '
+              'योजना के अनुसार अतिरिक्त दस्तावेज़ भी लग सकते हैं।',
+        );
 
       case 'deficiency_explanation':
         final pendingDocs = (app['pending_documents'] as List<dynamic>? ?? []);
         if (app['status'] == 'action_required' && pendingDocs.isNotEmpty) {
-          return 'For ${app['application_id']}: flagged for review - ${pendingDocs.join(', ')}.';
+          return _t(
+            'For ${app['application_id']}: flagged for review - ${pendingDocs.join(', ')}.',
+            '${app['application_id']} के लिए: समीक्षा हेतु चिह्नित - ${pendingDocs.join(', ')}।',
+          );
         }
-        return "You don't currently have any applications flagged for correction.";
+        return _t(
+          "You don't currently have any applications flagged for correction.",
+          'फिलहाल आपका कोई भी आवेदन सुधार हेतु चिह्नित नहीं है।',
+        );
 
       default:
-        return '[No response configured for this intent yet]';
+        return _t('[No response configured for this intent yet]', '[इस विषय पर अभी उत्तर उपलब्ध नहीं है]');
     }
   }
 
   void _handleIntentTap(ChatIntent intent) {
-    _addUserMessage(intent.chipLabel);
+    final label = _language == ChatLanguage.en ? intent.chipLabel : _chipLabelsHi[intent.id]!;
+    _addUserMessage(label);
     _sendReply(() => _buildReply(intent.id));
   }
 
@@ -156,9 +233,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     final matchedId = _matchIntent(trimmed);
     _sendReply(() => matchedId != null
         ? _buildReply(matchedId)
-        : "I'm not sure I understood that. Try one of the suggestions below, "
-            'or rephrase your question - for example, ask about your application status, '
-            'eligibility, required documents, or a deficiency notice.');
+        : _t(
+            "I'm not sure I understood that. Try one of the suggestions below, "
+                'or rephrase your question - for example, ask about your application status, '
+                'eligibility, required documents, or a deficiency notice.',
+            'मुझे यह समझ नहीं आया। नीचे दिए सुझावों में से कोई एक आज़माएं, या अपना प्रश्न फिर '
+                'से लिखें - जैसे आवेदन की स्थिति, पात्रता, आवश्यक दस्तावेज़, या कमी सूचना के बारे में पूछें।',
+          ));
   }
 
   String? _matchIntent(String text) {
@@ -224,6 +305,20 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               const Icon(Icons.smart_toy_outlined, color: AppColors.navy, size: 20),
               const SizedBox(width: 8),
               Text('JAGO Assistant', style: Theme.of(context).textTheme.titleMedium),
+              const Spacer(),
+              // Phase 4 (D) multilingual toggle.
+              OutlinedButton(
+                onPressed: _toggleLanguage,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.navy),
+                  minimumSize: const Size(0, 30),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                ),
+                child: Text(
+                  _language == ChatLanguage.en ? 'हिंदी' : 'English',
+                  style: const TextStyle(fontSize: 11, color: AppColors.navy, fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
           ),
         ),
@@ -254,7 +349,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                       ),
                       onPressed: () => _handleIntentTap(intent),
                       child: Text(
-                        intent.chipLabel,
+                        _language == ChatLanguage.en ? intent.chipLabel : _chipLabelsHi[intent.id]!,
                         style: const TextStyle(fontSize: 11, color: AppColors.navy),
                       ),
                     ))
@@ -272,7 +367,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   controller: _textController,
                   onSubmitted: _handleTextSubmit,
                   decoration: InputDecoration(
-                    hintText: 'Type your question...',
+                    hintText: _t('Type your question...', 'अपना प्रश्न लिखें...'),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     border: OutlineInputBorder(

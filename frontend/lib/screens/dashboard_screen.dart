@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/gov_header.dart';
 import '../widgets/emblem_watermark.dart';
 import '../widgets/application_ledger_row.dart';
+import '../widgets/notification_bell.dart';
 import '../models/scholarship_application.dart';
 import '../services/api_service.dart';
 
@@ -26,16 +27,55 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late Future<Map<String, dynamic>> _dashboardFuture;
+  late Future<List<dynamic>> _notificationsFuture;
+
+  // Phase 4 (D) milestone-alert mock: tracks which studentId/applicationId/
+  // milestone combos we've already fired a notification for this session,
+  // so re-running the future (e.g. via Retry) doesn't spam duplicate alerts.
+  static final Set<String> _firedMilestones = {};
 
   @override
   void initState() {
     super.initState();
     _dashboardFuture = ApiService.getDashboard(widget.studentId);
+    _notificationsFuture = _dashboardFuture.then(_fireMilestoneAlertsThenFetch);
+  }
+
+  // The instant the dashboard sees an application at a milestone stage
+  // (sanctioned / disbursed / action_required), it triggers a real call to
+  // the notification stub (Phase 4 B) so the bell has something genuine to
+  // show, then fetches the resulting list back.
+  Future<List<dynamic>> _fireMilestoneAlertsThenFetch(Map<String, dynamic> data) async {
+    const milestoneStatuses = {'sanctioned', 'disbursed', 'action_required'};
+    final apps = (data['applications'] as List<dynamic>? ?? []);
+
+    for (final raw in apps) {
+      final a = raw as Map<String, dynamic>;
+      final status = a['status']?.toString();
+      final appId = a['application_id']?.toString();
+      if (status == null || appId == null || !milestoneStatuses.contains(status)) continue;
+
+      final key = '${widget.studentId}:$appId:$status';
+      if (_firedMilestones.add(key)) {
+        try {
+          await ApiService.triggerNotification(
+            studentId: widget.studentId,
+            applicationId: appId,
+            milestone: status,
+          );
+        } catch (_) {
+          // Demo alert failing to fire shouldn't break the dashboard.
+        }
+      }
+    }
+
+    return ApiService.getNotifications(widget.studentId);
   }
 
   void _retry() {
     setState(() {
       _dashboardFuture = ApiService.getDashboard(widget.studentId);
+      _notificationsFuture = _dashboardFuture.then(_fireMilestoneAlertsThenFetch);
     });
   }
 
@@ -85,7 +125,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const GovHeader(),
+        GovHeader(trailing: NotificationBell(notificationsFuture: _notificationsFuture)),
         Expanded(
           child: FutureBuilder<Map<String, dynamic>>(
             future: _dashboardFuture,

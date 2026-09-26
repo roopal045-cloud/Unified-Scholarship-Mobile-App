@@ -43,4 +43,43 @@ class ApiService {
       throw Exception('Failed to load dashboard: ${response.statusCode} ${response.body}');
     }
   }
+
+  /// Fetches milestone alerts for a student (see notifications.js /
+  /// disbursementService.js on the backend).
+  static Future<List<dynamic>> getNotifications(String studentId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/notifications/$studentId'),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('Failed to load notifications: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// Fires a mock milestone notification (sanctioned / disbursed /
+  /// action_required). Used by the dashboard to simulate a push alert the
+  /// moment an application reaches one of those stages.
+  static Future<Map<String, dynamic>> triggerNotification({
+    required String studentId,
+    required String applicationId,
+    required String milestone,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/notifications/trigger'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'studentId': studentId,
+        'applicationId': applicationId,
+        'milestone': milestone,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to trigger notification: ${response.statusCode} ${response.body}');
+    }
+  }
 }
