@@ -171,7 +171,104 @@ Empty array `[]` if nothing has been flagged yet. This queue is in-memory and re
 
 ---
 
-## 5. Current demo dataset reference
+## 5. Disbursement
+
+### GET /api/disbursement/:applicationId
+
+Returns DBT (Direct Benefit Transfer) disbursement status for one application. Only applications that have reached Sanctioned or Disbursed stage have a real record — anything earlier returns `not_applicable`.
+
+**Path param:** `applicationId` (e.g. `SFMP-TC-55210`)
+
+**Response `200`** (disbursed):
+```json
+{
+  "applicationId": "SFMP-TC-55210",
+  "dbtStatus": "processed",
+  "bankAccountLast4": "7739",
+  "utrNumber": "UTR2026091044213",
+  "disbursedOn": "2026-09-18"
+}
+```
+
+**Response `200`** (sanctioned, not yet disbursed):
+```json
+{
+  "applicationId": "NSP2026POM004521",
+  "dbtStatus": "pending",
+  "bankAccountLast4": "4821",
+  "utrNumber": null,
+  "disbursedOn": null
+}
+```
+
+**Response `200`** (no disbursement record yet — application hasn't reached Sanctioned):
+```json
+{
+  "applicationId": "NSP2026PM001234",
+  "dbtStatus": "not_applicable",
+  "reason": "No disbursement record - application has not reached the Sanctioned stage yet."
+}
+```
+
+`dbtStatus` values: `processed` · `pending` · `not_applicable`
+
+---
+
+## 6. Notifications
+
+### POST /api/notifications/trigger
+
+Mock milestone alert — simulates the SMS/push notification a student would receive when their application status changes.
+
+**Request body:**
+```json
+{
+  "studentId": "STU-1003",
+  "applicationId": "SFMP-TC-55210",
+  "milestone": "disbursed"
+}
+```
+
+`milestone` accepts: `sanctioned` · `disbursed` · `action_required` (any other string still works, returns a generic message).
+
+**Response `200`:**
+```json
+{
+  "studentId": "STU-1003",
+  "applicationId": "SFMP-TC-55210",
+  "milestone": "disbursed",
+  "message": "Your scholarship amount has been disbursed to your linked bank account via DBT.",
+  "sentAt": "2026-09-26T14:47:47.000Z"
+}
+```
+
+**Response `400`** (missing fields):
+```json
+{ "error": "studentId, applicationId and milestone are required" }
+```
+
+### GET /api/notifications/:studentId
+
+Returns every notification triggered so far for one student (in-memory, resets on server restart — same pattern as the verification review queue).
+
+**Response `200`:**
+```json
+[
+  {
+    "studentId": "STU-1003",
+    "applicationId": "SFMP-TC-55210",
+    "milestone": "disbursed",
+    "message": "Your scholarship amount has been disbursed to your linked bank account via DBT.",
+    "sentAt": "2026-09-26T14:47:47.000Z"
+  }
+]
+```
+
+Empty array `[]` if nothing has been triggered yet for that student.
+
+---
+
+## 7. Current demo dataset reference
 
 | Student | Scheme | Source | Status | Amount |
 |---|---|---|---|---|
