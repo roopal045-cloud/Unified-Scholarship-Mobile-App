@@ -1,13 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-
 const authRoutes = require("./src/routes/auth");
 const applicationRoutes = require("./src/routes/applications");
 const verificationRoutes = require("./src/routes/verification");
-
 const app = express();
 const PORT = 3000;
-
 app.use(cors());
 app.use(express.json());
 

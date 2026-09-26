@@ -6,7 +6,10 @@ import 'document_wallet_screen.dart';
 import 'chatbot_screen.dart';
 
 class DashboardShell extends StatefulWidget {
-  const DashboardShell({super.key});
+  const DashboardShell({super.key, required this.studentId, this.applicantName});
+
+  final String studentId;
+  final String? applicantName;
 
   @override
   State<DashboardShell> createState() => _DashboardShellState();
@@ -23,13 +26,13 @@ class _DashboardShellState extends State<DashboardShell> {
     'Profile',
   ];
 
-  static const List<Widget> _screens = [
-    DashboardScreen(),
-    _PlaceholderScreen(label: 'Applications'),
-    DocumentWalletScreen(),
-    ChatbotScreen(),
-    _PlaceholderScreen(label: 'Profile'),
-  ];
+  List<Widget> get _screens => [
+        DashboardScreen(studentId: widget.studentId),
+        _PlaceholderScreen(label: 'Applications'),
+        const DocumentWalletScreen(),
+        ChatbotScreen(studentId: widget.studentId),
+        _PlaceholderScreen(label: widget.applicantName ?? 'Profile'),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +54,7 @@ class _DashboardShellState extends State<DashboardShell> {
   }
 }
 
-// Temporary placeholder for tabs not yet built (D and E's screens will
-// replace these later).
+// Temporary placeholder for tabs not yet built.
 class _PlaceholderScreen extends StatelessWidget {
   const _PlaceholderScreen({required this.label});
 

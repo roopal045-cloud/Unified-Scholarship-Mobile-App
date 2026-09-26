@@ -3,7 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/gov_header.dart';
 import '../widgets/emblem_watermark.dart';
 import 'dashboard_shell.dart';
-
+import '../services/api_service.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -20,11 +20,33 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _otpSent = true);
   }
 
-  void _verifyOtp() {
-    // No real auth for the demo - just navigate to the dashboard.
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const DashboardShell()),
-    );
+   bool _loading = false;
+  String? _errorText;
+
+  void _verifyOtp() async {
+    setState(() {
+      _loading = true;
+      _errorText = null;
+    });
+
+    final studentId = _idController.text.trim();
+
+    try {
+      final result = await ApiService.login(studentId);
+      final profile = result['profile'];
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => DashboardShell(studentId: profile['student_id']),
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _loading = false;
+        _errorText = 'Login failed. Check the Student ID and try again.';
+      });
+    }
   }
 
   @override
@@ -86,13 +108,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                       const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _otpSent ? _verifyOtp : _sendOtp,
-                          child: Text(_otpSent ? 'Verify and continue' : 'Send OTP'),
-                        ),
-                      ),
+                                   if (_errorText != null) ...[
+                    Text(_errorText!, style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 12)),
+                    const SizedBox(height: 12),
+                  ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : (_otpSent ? _verifyOtp : _sendOtp),
+                      child: _loading
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(_otpSent ? 'Verify and continue' : 'Send OTP'),
+                    ),
+                  ),
                     ],
                   ),
                 ),
