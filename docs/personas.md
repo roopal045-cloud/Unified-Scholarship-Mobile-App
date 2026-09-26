@@ -1,9 +1,10 @@
 # Demo personas
 
-These personas match the dummy data already used in `frontend/lib/models/scholarship_application.dart`.
-Use these exact names and details when narrating the live demo, so the story stays consistent
-with what judges see on screen.
-
+These personas match the real backend data (see `backend/src/adapters/` and
+`backend/src/routes/auth.js`), reachable by logging in with the student IDs noted below.
+Use these exact names, IDs, and details when narrating the live demo, so the story stays
+consistent with what judges see on screen. (The old `dummyApplications` list in
+`scholarship_application.dart` is unused dead code — ignore it.)
 ## 1. Ramesh Oraon — the straightforward success story
 - Two applications, both fully disbursed: Pre-Matric Scholarship (₹12,000) and the
   Eklavya Model Residential School Scheme (₹8,000)
@@ -20,11 +21,13 @@ with what judges see on screen.
   She can see it, right here, updated automatically."
 
 ## 3. Sunita Kumari — the centerpiece: document mismatch, not rejection
-- One application: National Fellowship for ST Students (NFST), flagged Action Required
-  at the Verified stage
-- Deficiency: expired Income Certificate, blurred Caste Certificate
+- Login as STU-1004. One application: National Overseas Scholarship (NOS), application
+  ID NOS/2026/0091, destination country United Kingdom, flagged Action Required
+- Deficiency: income certificate does not match the declared value on file
 - This is the most important persona for the pitch — it demonstrates the core design
-  principle that a mismatch is routed for correction, not used to reject the application outright
+  principle that a mismatch is routed for correction, not used to reject the application
+  outright, and it's also your clearest live proof that the standalone NOS portal
+  (a third, separate legacy system) is genuinely integrated, not just NSP/SFMP
 - Narrative line: "Sunita's documents didn't match on the first try. In the old system,
   that could mean silence for weeks. Here, she's told exactly what's wrong and exactly
   what to fix, immediately."
