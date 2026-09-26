@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 // Central place for all calls to the Node/Express backend.
@@ -6,7 +8,11 @@ import 'package:http/http.dart' as http;
 // "localhost" on your actual computer. If you're testing on Chrome/Windows
 // instead of an Android emulator, change this to "localhost".
 class ApiService {
-  static const String baseUrl = "http://localhost:3000/api";
+  static String get baseUrl {
+    if (kIsWeb) return "http://localhost:3000/api";
+    if (Platform.isAndroid) return "http://10.0.2.2:3000/api";
+    return "http://localhost:3000/api";
+  }
 
   /// Logs in with a student ID. Returns the response body as a Map,
   /// or throws an Exception if the request fails.

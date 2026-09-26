@@ -66,7 +66,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     super.initState();
     _loadApplications();
   }
-
+  // NOTE for D: this already calls the real /api/applications endpoint and
+  // builds live replies from it (see _buildReply below) — Phase 3's
+  // "connect chatbot to student status API" is done. Please review the 4
+  // intent replies below match what you intended, then take ownership of
+  // this file going forward so we're not duplicating work.
   Future<void> _loadApplications() async {
     try {
       final data = await ApiService.getDashboard(widget.studentId);
