@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/scholarship_application.dart';
+import '../screens/application_detail_screen.dart';
 import 'application_progress_stepper.dart';
 
 // Bordered, ledger-style row for one application - scheme name, ID,
@@ -11,6 +12,7 @@ class ApplicationLedgerRow extends StatelessWidget {
   final ScholarshipApplication application;
 
   String get _statusLabel {
+    if (application.actionRequired) return 'Action Required';
     switch (application.currentStage) {
       case ApplicationStage.submitted:
         return 'Submitted';
@@ -23,17 +25,29 @@ class ApplicationLedgerRow extends StatelessWidget {
     }
   }
 
-  Color get _statusColor => application.currentStage == ApplicationStage.disbursed
-      ? AppColors.green
-      : AppColors.saffron;
+  Color get _statusColor {
+    if (application.actionRequired) return const Color(0xFFD32F2F);
+    return application.currentStage == ApplicationStage.disbursed
+        ? AppColors.green
+        : AppColors.saffron;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return InkWell(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ApplicationDetailScreen(application: application),
+        ),
+      ),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: AppColors.white,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: application.actionRequired ? const Color(0xFFD32F2F) : AppColors.border,
+          width: application.actionRequired ? 1.4 : 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,25 +95,20 @@ class ApplicationLedgerRow extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-            child: ApplicationProgressStepper(currentStage: application.currentStage),
+            child: ApplicationProgressStepper(
+              currentStage: application.currentStage,
+              actionRequired: application.actionRequired,
+            ),
           ),
-          if (application.amount > 0)
+          if (application.actionRequired)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: AppColors.border)),
-                color: Color(0xFFFAFAFA),
+                color: Color(0xFFFDECEC),
+                border: Border(top: BorderSide(color: Color(0xFFD32F2F))),
               ),
-              child: Text(
-                application.currentStage == ApplicationStage.disbursed
-                    ? 'Amount disbursed: ₹${application.amount.toStringAsFixed(0)}'
-                    : 'Sanctioned amount: ₹${application.amount.toStringAsFixed(0)}',
-                style: const TextStyle(fontSize: 11, color: AppColors.textDark),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline, size: 16, color: Color(0xFFD32F2F)),
+                  const SizedBox(width: 8),

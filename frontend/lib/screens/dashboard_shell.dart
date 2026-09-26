@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gov_header.dart';
 import 'dashboard_screen.dart';
+import 'document_wallet_screen.dart';
+import 'chatbot_screen.dart';
 
 class DashboardShell extends StatefulWidget {
   const DashboardShell({super.key});
@@ -24,8 +26,8 @@ class _DashboardShellState extends State<DashboardShell> {
   static const List<Widget> _screens = [
     DashboardScreen(),
     _PlaceholderScreen(label: 'Applications'),
-    _PlaceholderScreen(label: 'Document wallet'),
-    _PlaceholderScreen(label: 'JAGO assistant'),
+    DocumentWalletScreen(),
+    ChatbotScreen(),
     _PlaceholderScreen(label: 'Profile'),
   ];
 

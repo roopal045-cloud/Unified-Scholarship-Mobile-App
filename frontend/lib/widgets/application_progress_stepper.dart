@@ -5,9 +5,17 @@ import '../models/scholarship_application.dart';
 // Horizontal progress line: Submitted -> Verified -> Sanctioned -> Disbursed.
 // Current stage highlighted saffron, completed stages green, pending grey.
 class ApplicationProgressStepper extends StatelessWidget {
-  const ApplicationProgressStepper({super.key, required this.currentStage});
+  const ApplicationProgressStepper({
+    super.key,
+    required this.currentStage,
+    this.actionRequired = false,
+  });
 
   final ApplicationStage currentStage;
+
+  // §1.1: when true, the CURRENT stage's dot renders red (alert state)
+  // instead of saffron. No 5th step is added to the stepper.
+  final bool actionRequired;
 
   static const List<String> _labels = [
     'Submitted',
@@ -26,9 +34,12 @@ class ApplicationProgressStepper extends StatelessWidget {
           final stageIndex = i ~/ 2;
           final isDone = stageIndex < currentIndex;
           final isCurrent = stageIndex == currentIndex;
+          final isAlert = isCurrent && actionRequired;
           final dotColor = isDone
               ? AppColors.green
-              : (isCurrent ? AppColors.saffron : AppColors.border);
+              : (isAlert
+                  ? const Color(0xFFD32F2F)
+                  : (isCurrent ? AppColors.saffron : AppColors.border));
 
           return Column(
             children: [
@@ -44,7 +55,9 @@ class ApplicationProgressStepper extends StatelessWidget {
                 ),
                 child: isDone
                     ? const Icon(Icons.check, size: 10, color: AppColors.white)
-                    : null,
+                    : (isAlert
+                        ? const Icon(Icons.priority_high, size: 10, color: AppColors.white)
+                        : null),
               ),
               const SizedBox(height: 4),
               SizedBox(
@@ -55,7 +68,9 @@ class ApplicationProgressStepper extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                    color: isCurrent ? AppColors.saffron : AppColors.textDark,
+                    color: isAlert
+                        ? const Color(0xFFD32F2F)
+                        : (isCurrent ? AppColors.saffron : AppColors.textDark),
                   ),
                 ),
               ),
