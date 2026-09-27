@@ -35,7 +35,7 @@ class _DashboardShellState extends State<DashboardShell> {
   List<Widget> get _screens => [
         DashboardScreen(studentId: widget.studentId, applicantName: widget.applicantName),
         ApplicationsScreen(studentId: widget.studentId, applicantName: widget.applicantName),
-        const DocumentWalletScreen(),
+               DocumentWalletScreen(studentId: widget.studentId),
         ChatbotScreen(studentId: widget.studentId),
         ProfileScreen(
           studentId: widget.studentId,
