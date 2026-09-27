@@ -86,7 +86,7 @@ class ApiService {
     }
   }
 
-  /// Checks whether a student is eligible to start a new scheme application.
+    /// Checks whether a student is eligible to start a new scheme application.
   /// Enforces the "one scheme at a time" rule from the problem statement.
   static Future<Map<String, dynamic>> checkEligibility(String studentId) async {
     final response = await http.get(
@@ -97,6 +97,20 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to check eligibility: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// Ministry-facing: fetches ST students enrolled per UDISE+/APAAR/OTR
+  /// but not availing any scholarship across NSP, SFMP, or NOS.
+  static Future<Map<String, dynamic>> getCoverageGap() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/coverage-gap'),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load coverage gap data: ${response.statusCode} ${response.body}');
     }
   }
 }

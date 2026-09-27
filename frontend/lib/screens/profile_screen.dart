@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gov_header.dart';
 import 'login_screen.dart';
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
     super.key,
@@ -106,7 +105,7 @@ class ProfileScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                       const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -118,7 +117,7 @@ class ProfileScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
-                ),
+                ), 
               ],
             ),
           ),

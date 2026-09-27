@@ -4,6 +4,7 @@ import '../widgets/gov_header.dart';
 import '../widgets/emblem_watermark.dart';
 import 'dashboard_shell.dart';
 import '../services/api_service.dart';
+import 'ministry_login_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -127,6 +128,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : Text(_otpSent ? 'Verify and continue' : 'Send OTP'),
+                    ),
+                  ),
+                                    const SizedBox(height: 20),
+                  Center(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const MinistryLoginScreen()),
+                        );
+                      },
+                      child: const Text(
+                        'Ministry official? Login here',
+                        style: TextStyle(fontSize: 12, color: AppColors.navy),
+                      ),
                     ),
                   ),
                     ],
