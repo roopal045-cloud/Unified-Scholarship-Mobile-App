@@ -50,9 +50,3 @@ if useful (student journey, verification-layer branching diagram).
   not fully implemented in this build
 - Multilingual chatbot support is scoped but not built for this demo
 
-## Presenter assignments (fill in before final rehearsal)
-- Problem + solution overview:
-- Architecture:
-- Live demo:
-- Technical implementation:
-- Impact + what's next / Q&A:

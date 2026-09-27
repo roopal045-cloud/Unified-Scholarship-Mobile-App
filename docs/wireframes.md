@@ -1,54 +1,77 @@
 # Screen reference
 
 Design language: navy #0B3D91 header with National Emblem placeholder and tricolor strip,
-saffron #FF9933 accents, green #138808 for success/verified states, Noto Sans typography,
+saffron #FF9933 accents, green #138808 for success/verified states, Noto Sans typography
+(font falls back to system default — never actually registered in pubspec.yaml),
 bordered/sectioned layout (see `frontend/lib/theme/app_theme.dart` for exact tokens).
 
-## Built and working
+All screens below are built, wired to the live backend, and tested end-to-end.
 
-### Login screen (`login_screen.dart`)
-Navy header with tricolor strip. Two-step form: enter Student ID / mobile number →
-"Send OTP" → OTP field appears → "Verify and continue" → navigates to Dashboard.
-No real Aadhaar integration for the demo.
+## Student-facing screens
+
+### Login (`login_screen.dart`)
+Navy header with tricolor strip. Student ID field → "Send OTP" → OTP field appears →
+"Verify and continue" → calls the real login API, navigates to the dashboard shell.
+Includes a "Ministry official? Login here" link to the separate Ministry flow.
 
 ### Dashboard (`dashboard_screen.dart`)
-Header, then a "Total amount disbursed" summary card with an Ashoka Emblem watermark
-behind it, then a bordered ledger-style row per application (scheme name, ID, status
-chip, 4-stage progress line: Submitted → Verified → Sanctioned → Disbursed). Footer
-strip at the bottom shows "Grievance Redressal" and a "Last synced" timestamp.
-Tapping a row opens the Application Detail screen.
+Header, "Total amount disbursed" summary with an Ashoka Emblem watermark behind it,
+a notification bell (fires and fetches real milestone alerts), a "+ Apply for new
+scheme" button (→ Eligibility Check screen), and a bordered ledger-style row per
+application with a 4-stage progress line (Submitted → Verified → Sanctioned →
+Disbursed). Footer strip shows "Grievance Redressal" and a live "Last synced" time.
 
-### Application Detail screen (`application_detail_screen.dart`)
-Full timeline/audit-trail view for one application, using the same 4-stage model.
-Shows the deficiency note in full when an application is flagged Action Required.
+### Applications (`applications_screen.dart`)
+Full list of every application for the logged-in student — same ledger-row widget
+as the Dashboard, reused. Tapping a row opens the Application Detail screen.
+
+### Application Detail (`application_detail_screen.dart`)
+Full timeline/audit-trail view for one application. Shows the deficiency note in
+full when an application is flagged.
 
 ### Document Wallet (`document_wallet_screen.dart`)
-Lists documents tied to applications, styled with the same bordered-row pattern.
+Documents derived from the student's real applications (there is no separate
+document-storage backend). A flagged application contributes a rejected entry
+per pending document; other applications contribute a "supporting documents"
+entry, verified or pending based on status. Shows a "needs attention" badge
+when any document is rejected.
 
 ### JAGO Chatbot (`chatbot_screen.dart`)
-Bordered chat bubbles (no rounded fintech shape), 4 suggested-intent chips, plus a
-free-text input with basic keyword matching. Real copy for all 4 intents as of this
-build; references the flagged demo persona (Sunita Kumari) for status/deficiency answers.
+Bordered chat bubbles, English/Hindi toggle, 4 suggested-intent chips plus a
+free-text input with keyword matching. All replies pull the student's live
+application data — no hardcoded copy remaining. See `chatbot-demo-script.md`
+for the exact demo flow.
 
-## Not yet built
+### Eligibility Check (`eligibility_check_screen.dart`)
+Reached from the Dashboard's "+ Apply for new scheme" button. Calls the real
+eligibility API and shows either a green "you are eligible" state (zero
+existing applications) or a red "blocked" state naming the existing application
+that prevents a new one — enforcing the "one scheme at a time" rule from the
+problem statement. "Continue to apply" beyond this point is an intentional
+placeholder; no application-submission form was built (out of scope).
 
-### Applications tab (bottom nav, 2nd tab)
-Currently shows a "coming soon" placeholder in `dashboard_shell.dart`. Should show a
-full list of all applications (not just the dashboard summary), reusing
-`ApplicationLedgerRow`. This is a quick win — the widget already exists, it just
-needs to be wired into this tab instead of the placeholder.
+### Profile (`profile_screen.dart`)
+Real name, student ID, state, category, and a working Log out button that
+returns to the login screen.
 
-### Profile tab (bottom nav, 5th tab)
-Currently a placeholder. Needs: student name, ST/PVTG status, state, and a logout
-action at minimum.
+## Ministry-facing screens (separate flow, not linked from student login's main path)
 
-### Eligibility-check screen
-Not built. Per the original problem statement, this should appear before a student
-starts a new application, warning them if they already hold an active scholarship
-(the "one scheme at a time" rule). Depends on B's eligibility-check API, which is
-also not yet built as of this doc.
+### Ministry Login (`ministry_login_screen.dart`)
+Separate login form, reached via a small link on the student login screen.
+Mock credentials: username `admin`, password `mota2026`. Not connected to any
+student account or student data.
 
-### National Emblem asset
-Currently a placeholder icon (`Icons.account_balance`). Swap for the real emblem
-image before final submission if time allows — otherwise mention in the pitch that
-it's a placeholder pending official clearance under the State Emblem of India Act.
+### Coverage Gap Dashboard (`coverage_gap_screen.dart`)
+Reached only after Ministry login. Three stat cards (enrolled checked, covered,
+gap count) and a list of ST students who are enrolled per UDISE+/APAAR/OTR but
+not availing any scholarship — cross-referenced live against the 3 mock
+adapters. Has its own back button rather than the student bottom nav.
+
+## Known placeholders / not built
+- **National Emblem** — `Icons.account_balance` placeholder; swap for the real
+  asset before final submission, or disclose in the pitch as pending clearance
+  under the State Emblem of India Act.
+- **Noto Sans font** — referenced in the theme but never registered in
+  `pubspec.yaml`; falls back to the system default font silently. Cosmetic only.
+- **Application-submission form** — intentionally out of scope; the eligibility
+  check is the last built step in that flow.
