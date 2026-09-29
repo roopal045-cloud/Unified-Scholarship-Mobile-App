@@ -1,72 +1,62 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import 'tricolor_strip.dart';
 
-// Official government-style header: navy bar with emblem placeholder
-// and ministry name, topped off with the tricolor accent strip.
+// Header used on every screen, matching the redesigned portal look:
+// white background, navy emblem icon, Ministry name/subtitle, and a
+// language switcher on the right - or the trailing widget (e.g. the
+// Dashboard's notification bell) when one is supplied.
+//
 // NOTE: account_balance icon is a placeholder for the National Emblem
-// (Ashoka Lion Capital) - swap in the real emblem asset before final submission,
-// and flag in the pitch deck that it is used pending official clearance.
+// (Ashoka Lion Capital) - swap in the real emblem asset before final
+// submission.
 class GovHeader extends StatelessWidget {
   const GovHeader({super.key, this.compact = false, this.trailing});
 
   final bool compact;
-  // Optional slot for a header action, e.g. the milestone-alert bell on the
-  // Dashboard tab. Kept nullable so every other screen using GovHeader is
-  // unaffected.
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: double.infinity,
-          color: AppColors.navy,
-          padding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: compact ? 12 : 20,
-          ),
-          child: SafeArea(
-            bottom: false,
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.account_balance,
-                  color: AppColors.white,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Ministry of Tribal Affairs',
-                        style: TextStyle(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        'Government of India',
-                        style: TextStyle(
-                          color: AppColors.white.withOpacity(0.85),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
+    return Container(
+      width: double.infinity,
+      color: AppColors.white,
+      padding: EdgeInsets.symmetric(horizontal: 24, vertical: compact ? 12 : 16),
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            Icon(Icons.account_balance, color: AppColors.navy, size: compact ? 24 : 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ministry of Tribal Affairs',
+                    style: TextStyle(
+                      color: AppColors.navy,
+                      fontWeight: FontWeight.bold,
+                      fontSize: compact ? 15 : 17,
+                    ),
                   ),
-                ),
-                if (trailing != null) trailing!,
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    'Government of India',
+                    style: TextStyle(color: Colors.grey, fontSize: compact ? 11 : 12),
+                  ),
+                ],
+              ),
             ),
-          ),
+            if (trailing != null)
+              trailing!
+            else if (!compact)
+              const Text(
+                'हिन्दी · English',
+                style: TextStyle(color: AppColors.textDark, fontSize: 13),
+              ),
+          ],
         ),
-        const TricolorStrip(),
-      ],
+      ),
     );
   }
 }
