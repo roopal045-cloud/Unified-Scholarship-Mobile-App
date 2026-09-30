@@ -55,6 +55,8 @@
 
 The existing portals (NSP, SFMP and NOS) keep running unchanged. ShikshaSetu sits on top of them and connects them.
 
+> **About this repository.** This README describes the **final ShikshaSetu app** as proposed in our SIH presentation. The repository contains a **working prototype** of it. Where the prototype differs (for example mock data adapters and a simulated Aadhaar-OTP step), the "In this prototype" column says so.
+
 ## 2. Problem Statement
 
 Tribal students today face several connected problems:
@@ -95,41 +97,25 @@ AISHE · UDISE+ · APAAR · UGC-NTA └─────────────�
 
 ## 4. Key Features
 
-| Feature | Description |
-|---|---|
-| **Unified student dashboard** | Applications, progress, deficiencies, sanctions and DBT for all schemes in one view. |
-| **Single login** | One login for all schemes. Aadhaar-OTP login is simulated in the prototype, and a JWT is issued for the session. |
-| **Eligibility check** | Checks one scheme at a time and names the existing application that blocks a new one. |
-| **Application management** | Apply for a scheme and track it end to end. |
-| **Digital document wallet** | Upload documents once and reuse them, with the verification state and any deficiency shown for each. |
-| **Automated verification** | Each document is checked at its source (DigiLocker, UIDAI, e-District, AISHE, UDISE+, APAAR, UGC-NTA). Matches move on automatically. |
-| **Manual review with deficiency notes** | Mismatches are never auto-rejected. They go to a review queue with a note explaining what to fix. |
-| **JAGO chatbot** | A student-specific assistant for status, pending documents, eligibility, deficiencies, payments and scheme queries, in **English and Hindi**. It answers from the student's live data. |
-| **DBT and payment status** | Sanction and disbursement status consolidated across schemes. |
-| **Notifications** | Milestone and reminder alerts by push, SMS, email and in-app. |
-| **Ministry official login** | A separate login for Ministry officials. |
-| **Coverage-gap outreach dashboard** | Matches enrollment records (UDISE+, APAAR, OTR) with scholarship records (NSP, SFMP, NOS) to find enrolled ST students availing no scheme, and flags them for outreach. |
-| **Mobile-first and inclusive** | Light, simple interface for rural and first-time users, with language support and low-internet use in mind. |
+Features of the final app, with the state of each one in the prototype in this repository.
 
-### Coverage-gap identification logic
-
-```
-Enrollment records (UDISE+ / APAAR / OTR)
-              │
-              ▼
-   Identify enrolled ST students
-              │
-              ▼
-   Match against scholarship records (NSP + SFMP + NOS)
-              │
-              ▼
-   Any scholarship application found?
-        │                     │
-       Yes                    No
-        ▼                     ▼
- Covered: already        Potential gap:
- availing a scheme       flag for Ministry outreach
-```
+| Feature | Description | In this prototype |
+|---|---|---|
+| **Unified student dashboard** | Applications, progress, deficiencies, sanctions and DBT for all schemes in one view, built by the Aggregation Service from the NSP, SFMP and NOS adapters. | Working (mock data) |
+| **Single login** | Student ID login screen with an OTP step. The backend issues a JWT valid for 12 hours. The OTP itself is a simulated UI step, not a real Aadhaar OTP. | Simulated |
+| **Eligibility check** | Enforces the one-scheme-at-a-time rule and names the existing application that blocks a new one. | Working |
+| **Application tracking** | Detail screen with a progress stepper for each application. | Working |
+| **Document wallet** | Shows each document with its verification state and deficiency, derived from the student's applications. Direct file upload is not built yet. | Partial |
+| **Automated verification** | The Verification Service routes each document type to the right source adapter. A match is auto-cleared. | Working (mock adapters) |
+| **Manual review with deficiency notes** | A mismatch goes to a manual review queue with a note and never blocks the application. | Working |
+| **JAGO chatbot** | Answers status, eligibility, documents and deficiency questions from the student's live application data, with an English/Hindi toggle. Intent matching is rule-based. | Working (rule-based) |
+| **DBT and payment status** | The Disbursement Service consolidates sanction and DBT status. | Working (mock data) |
+| **Notifications** | Milestone alerts through a notification bell in the app, backed by trigger and list endpoints. | In-app only |
+| **Ministry official login** | A separate login screen for Ministry officials. | Working (demo credentials) |
+| **Coverage-gap outreach dashboard** | Cross-references enrollment records (UDISE+, APAAR, OTR) with NSP, SFMP and NOS records to list enrolled ST students with no scholarship application. | Working (mock data) |
+| **Mobile-first UI** | Light, simple, government-style interface with a tricolor strip and header. | Working |
+| **Push, SMS and email alerts** | Firebase Cloud Messaging and SMS/email delivery. | Planned |
+| **Live government integrations** | Real NSP, SFMP, NOS, DigiLocker, UIDAI, e-District, AISHE, UDISE+, APAAR and UGC-NTA connections. | Planned |
 
 ## 5. Innovation and Uniqueness
 
@@ -201,60 +187,88 @@ ShikshaSetu has five layers.
 
 ## 8. Technology Stack and Why We Chose It
 
-| Layer | Technology | Why we chose it |
-|---|---|---|
-| **Frontend** | **Flutter · Dart** | One codebase gives a fast, smooth Android app, and the same code can later run on iOS and web. This suits a student base on a wide range of budget devices. Flutter's widget system let us build a consistent government-style theme quickly (header, tricolor strip, login screen), and its light footprint fits our low-internet, rural-user focus. |
-| **Backend** | **Node.js · Express** | Non-blocking I/O suits our main job: calling several portal adapters and data sources at the same time and merging the results without one slow source blocking the rest. Express keeps the REST API simple and quick to build and extend. |
-| **Database** | **MongoDB · Mongoose** | Applications, documents and verification results have different shapes for each scheme. A flexible document model lets a new scheme's fields be added without a migration, and Mongoose adds schema validation and structure where we need it. |
-| **Authentication** | **JWT (JSON Web Token)** | Stateless, session-based access for the mobile app, and it lets us separate student and Ministry official roles cleanly. |
-| **Integrations** | **NSP · SFMP · NOS** and Govt. data APIs | The scholarship portals hold the source of truth for applications. We integrate through adapters instead of replacing them. |
-| **Notifications** | **Firebase Cloud Messaging (FCM)** | Free, reliable push notifications on Android, for deadlines, deficiencies and payment updates. |
-| **AI chatbot** | **JAGO (LLM API)** | A language model lets JAGO understand free-form questions in English and Hindi, while its answers are grounded in the student's live application data. |
-| **Deployment** | **Vercel / AWS or GCP** | Flexible hosting options that scale with usage and can run on existing government-approved cloud infrastructure. |
-| **Version control and CI** | **GitHub** | Source hosting, collaboration between team members, and CI. |
+### Final app stack
 
-**Design choices behind the stack**
+| Layer | Technology | Why we chose it | In this prototype |
+|---|---|---|---|
+| **Frontend** | **Flutter · Dart** | One codebase gives a fast, smooth Android app, and the same code can later run on iOS and web. This suits a student base on a wide range of budget devices. Flutter's widget system let us build a consistent government-style theme quickly (header, tricolor strip, login screen, progress stepper), and its light footprint fits our low-internet, rural-user focus. | Built with Flutter, using the `http` package for API calls |
+| **Backend** | **Node.js · Express** | Non-blocking I/O suits our main job: calling several portal adapters and data sources at the same time and merging the results without one slow source blocking the rest. Express keeps the REST API simple, with one route file per feature. | Built with Express 5 |
+| **Database** | **MongoDB · Mongoose** | Applications, documents and verification results have different shapes for each scheme. A flexible document model lets a new scheme's fields be added without a migration, and Mongoose adds schema validation where we need it. | In-memory mock data, so the demo runs anywhere with no setup. `schema.sql` documents the data design. |
+| **Authentication** | **JWT (JSON Web Token)** | Stateless tokens suit a mobile app and let us separate student and Ministry official roles cleanly. | JWT with 12-hour expiry, using `jsonwebtoken` |
+| **Integrations** | **NSP · SFMP · NOS** and Govt. data APIs | The scholarship portals hold the source of truth for applications. We integrate through one adapter per portal instead of replacing them. | Mock adapters shaped like each portal's data |
+| **Notifications** | **Firebase Cloud Messaging (FCM)** | Free, reliable push notifications on Android for deadlines, deficiencies and payment updates. | In-app notification bell with trigger and list endpoints |
+| **AI chatbot** | **JAGO (LLM API)** | A language model lets JAGO understand free-form questions in English and Hindi, grounded in the student's live application data. | Rule-based intents with an English/Hindi toggle, using live application data |
+| **Deployment** | **Vercel / AWS or GCP** | Flexible hosting that scales with usage and can run on existing government-approved cloud infrastructure. | Runs locally |
+| **Version control** | **GitHub** | Source hosting and collaboration between team members. | Used |
 
-- **Adapter pattern:** one adapter per portal converts three different data formats into one schema, so the rest of the platform never depends on portal-specific details. A new scheme is a new adapter and rule set. Today the adapters use **mock data**, and they swap to live APIs once agencies grant access.
-- **Microservice-style integration layer:** each concern (aggregation, eligibility, verification, disbursement, notification, coverage-gap) can be built, tested and scaled on its own.
+### Supporting libraries in the prototype
+
+| Library | Purpose |
+|---|---|
+| `cors` | Lets the Flutter web build and emulators call the API during development |
+| `uuid` | Generates unique identifiers for records |
+| `cupertino_icons`, custom `AppTheme` | Icons and one central theme for a consistent look |
+| `flutter_lints`, `flutter_test` | Code quality rules and widget tests |
+
+### Design choices behind the stack
+
+- **Adapter pattern:** one adapter per portal converts three different data formats into one schema, so the rest of the platform never depends on portal-specific details. A new scheme is a new adapter and rule set.
+- **Routes, services, adapters:** routes handle HTTP, services hold business logic (aggregation, eligibility, verification, disbursement, coverage-gap), and adapters talk to data sources. Each layer can change without touching the others.
+- **Microservice-style integration layer:** each concern can be built, tested and scaled on its own in the final app.
 - **Open-source only:** Flutter, Node.js and MongoDB carry no licence cost.
 
 ## 9. Integrations
 
-| Type | System | Used for |
-|---|---|---|
-| Scholarship APIs | **NSP** | Pre-Matric and Post-Matric scholarships |
-| | **SFMP** (Canara Bank) | Top Class Education for ST, NFST |
-| | **NOS** | National Overseas Scholarship |
-| Verification sources | **DigiLocker** | Document verification |
-| | **UIDAI (Aadhaar)** | Identity verification |
-| | **e-District** | Caste, income and domicile |
-| | **AISHE / UDISE+** | Educational details |
-| | **APAAR** | Student academic ID |
-| | **UGC / NTA** | University and exam data |
-| Services | **Firebase Cloud Messaging** | Push notifications (planned) |
-| | **LLM API** | JAGO assistance |
+| Type | System | Used for | In this prototype |
+|---|---|---|---|
+| Scholarship APIs | **NSP** | Pre-Matric and Post-Matric scholarships | Mock adapter |
+| | **SFMP** (Canara Bank) | Top Class Education for ST, NFST | Mock adapter |
+| | **NOS** | National Overseas Scholarship | Mock adapter |
+| Enrollment data | **UDISE+ / APAAR / OTR** | Finding enrolled ST students for the coverage-gap dashboard | Mock adapter |
+| Verification sources | **DigiLocker** | Document verification | Simulated through the scheme adapters |
+| | **UIDAI (Aadhaar)** | Identity verification | Simulated OTP step |
+| | **e-District** | Caste, income and domicile | Simulated |
+| | **AISHE / UDISE+** | Educational details | Simulated |
+| | **APAAR** | Student academic ID | Simulated |
+| | **UGC / NTA** | University and exam data | Simulated |
+| Services | **Firebase Cloud Messaging** | Push notifications | Planned |
+| | **LLM API** | JAGO assistance | Planned |
 
-> **Prototype note:** Aadhaar-OTP login is simulated, and the scholarship and verification integrations use mock adapters. Live access depends on Ministry and agency data-sharing approval.
+> **Note:** live access to these systems depends on Ministry and agency data-sharing approval. Until then the adapters return mock data shaped like the real systems.
 
 ## 10. Project Structure
 
 ```
 Unified-Scholarship-Mobile-App/
 ├── backend/
-│   ├── src/                 # Routes, adapters, services, Ministry official dashboard logic
-│   ├── server.js            # Backend entry point
-│   ├── API_CONTRACT.md      # Endpoint documentation
-│   └── package.json
-├── docs/
-│   ├── personas.md          # User personas
-│   ├── wireframes.md        # Screen wireframes
-│   └── pitch-deck-outline.md
-├── frontend/                # Flutter app
-│   ├── lib/                 # Dart source code
-│   ├── android/ ios/ web/ linux/ macos/ windows/
+│   ├── server.js                  # Express entry point (port 3000), mounts all routes
+│   ├── package.json
+│   ├── API_CONTRACT.md            # Endpoint documentation
+│   ├── schema.sql                 # Reference relational schema
+│   └── src/
+│       ├── routes/                # auth, applications, verification, disbursement,
+│       │                          # notifications, eligibility, coverageGap
+│       ├── services/              # aggregation, eligibility, verification,
+│       │                          # disbursement, coverageGap
+│       └── adapters/              # nsp, sfmp, nos, enrollment (mock data sources)
+├── frontend/                      # Flutter app
+│   ├── pubspec.yaml
 │   ├── test/
-│   └── pubspec.yaml
+│   ├── android/ ios/ web/ linux/ macos/ windows/
+│   └── lib/
+│       ├── main.dart
+│       ├── screens/               # login, ministry login, dashboard, applications,
+│       │                          # application detail, document wallet, eligibility
+│       │                          # check, JAGO chatbot, coverage gap, profile
+│       ├── widgets/               # gov header, tricolor strip, progress stepper,
+│       │                          # notification bell, ledger and wallet rows
+│       ├── models/                # scholarship application, document item
+│       ├── services/api_service.dart
+│       └── theme/app_theme.dart
+├── docs/
+│   ├── personas.md
+│   ├── wireframes.md
+│   └── pitch-deck-outline.md
 ├── LICENSE
 └── README.md
 ```
@@ -263,9 +277,10 @@ Unified-Scholarship-Mobile-App/
 
 ### Prerequisites
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) and an Android emulator or device
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Dart ^3.13.2) and an Android emulator or a device
 - [Node.js](https://nodejs.org/) and npm
-- [MongoDB](https://www.mongodb.com/) (local or Atlas)
+
+These steps run the prototype in this repository. It needs no database or `.env` file because it runs on built-in mock data.
 
 ### 1. Clone the repository
 
@@ -279,16 +294,10 @@ cd Unified-Scholarship-Mobile-App
 ```bash
 cd backend
 npm install
-npm start
+node server.js
 ```
 
-Create a `.env` file in `backend/` with values like:
-
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/shikshasetu
-JWT_SECRET=your_secret_here
-```
+The API starts on `http://localhost:3000`. Open that address in a browser to see the health check.
 
 ### 3. Run the Flutter app
 
@@ -298,11 +307,35 @@ flutter pub get
 flutter run
 ```
 
-Set the backend base URL in the app to your server address. On an Android emulator, `localhost` on your machine is reached at `10.0.2.2`.
+The app picks the API address automatically: `10.0.2.2:3000` on an Android emulator (which reaches your computer's localhost) and `localhost:3000` on web and desktop. If you use a physical phone, change the address in `frontend/lib/services/api_service.dart` to your computer's local IP.
+
+### Demo student IDs
+
+| Student ID | Name | State |
+|---|---|---|
+| STU-1001 | Anita Oraon | Jharkhand |
+| STU-1002 | Ravi Munda | Odisha |
+| STU-1003 | Meena Bhil | Madhya Pradesh |
+| STU-1004 | Sunita Kumari | Chhattisgarh |
+| STU-1005 | Arjun Meena | Rajasthan |
+
+Enter any of these IDs on the login screen and continue through the OTP step. The Ministry official login uses separate demo credentials that are set in the app code.
 
 ## 12. API Documentation
 
-The complete list of endpoints, request bodies and responses is in [`backend/API_CONTRACT.md`](backend/API_CONTRACT.md). It includes the scholarship, application, disbursement and notification endpoints.
+Base URL: `http://localhost:3000/api`. The complete request and response details are in [`backend/API_CONTRACT.md`](backend/API_CONTRACT.md).
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/auth/login` | Log in with a student ID and receive a JWT and profile |
+| GET | `/applications/:studentId` | Unified dashboard merging NSP, SFMP and NOS |
+| GET | `/eligibility/:studentId` | One-scheme-at-a-time eligibility check |
+| POST | `/verification/check` | Verify one document, auto-clear it or send it to manual review |
+| GET | `/verification/review-queue` | List documents waiting in manual review |
+| GET | `/disbursement/:applicationId` | Sanction and DBT status |
+| POST | `/notifications/trigger` | Create a milestone notification |
+| GET | `/notifications/:studentId` | List notifications for a student |
+| GET | `/coverage-gap` | Ministry view of enrolled ST students with no scholarship |
 
 ## 13. Feasibility and Viability
 
@@ -329,7 +362,7 @@ The complete list of endpoints, request bodies and responses is in [`backend/API
 | Legacy portals expose no ready APIs | One adapter per portal. Mock data for now, swapping to live APIs once agencies grant access. |
 | Three systems, three data formats | The Aggregation Service normalizes every record into one common schema. |
 | Documents that don't match across records | Routed to manual review with a deficiency note, never auto-rejected. |
-| Sensitive data: Aadhaar, income, caste | JWT-secured access, with checks made against official sources within data-sharing policies. |
+| Sensitive data: Aadhaar, income, caste | JWT-secured access, with checks made against official sources within data-sharing policies. Secrets will move to environment variables for production. |
 | Low digital literacy, many languages | Simple mobile-first screens. JAGO guides in English and Hindi, with more languages to follow. |
 | New schemes and changing rules | A new scheme is a new adapter and rule set. The rest of the platform stays as is. |
 
@@ -353,9 +386,11 @@ The complete list of endpoints, request bodies and responses is in [`backend/API
 ## 16. Future Scope
 
 - Replace mock adapters with live NSP, SFMP and NOS integrations after data-sharing approval
-- Live DigiLocker, UIDAI and e-District verification
-- More regional and tribal languages for JAGO
-- Push notifications through Firebase Cloud Messaging
+- Live DigiLocker, UIDAI and e-District verification, including real Aadhaar-OTP login
+- MongoDB persistence for users, applications, documents, verification and payments
+- Push, SMS and email notifications through Firebase Cloud Messaging
+- LLM-powered JAGO with more regional and tribal languages
+- Direct document upload in the wallet
 - Extension to more schemes, states and student categories
 
 ## 17. Documentation and Design Assets
@@ -383,7 +418,7 @@ The complete list of endpoints, request bodies and responses is in [`backend/API
 
 7. Flutter and Dart: mobile frontend
 8. Node.js and Express: backend
-9. MongoDB, REST API and JWT: data layer and API
+9. REST API and JWT: data layer and API
 10. Firebase Cloud Messaging and an LLM API: notifications and JAGO
 
 ## 19. License
